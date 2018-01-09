@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">outsmartpicker</string>
+    <string name="authority">outsmartFileProvider</string>
+    <string name="canceled">Choice canceled</string>
+</resources>

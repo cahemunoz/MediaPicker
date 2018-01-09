@@ -1,0 +1,139 @@
+package com.outsmart.outsmartpicker;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Fragment;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
+import android.util.Log;
+
+import com.outsmart.outsmartpicker.utils.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.RuntimePermissions;
+
+import static android.app.Activity.RESULT_OK;
+
+/**
+ * Created by carlos on 08/01/18.
+ */
+@RuntimePermissions
+public class MediaPicker extends Fragment {
+    public final static String PICKER_RESPONSE_FILTER = "com.outsmart.picker.RESPONSE";
+    public final static String PICKER_INTENT_FILE = "file";
+
+    private static final String TAG = MediaPicker.class.getSimpleName();
+    public final int PICK_CAMERA_REQUEST = 5179;
+    private String fileImagePath;
+    private String fileVideoPath;
+
+    @Override
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        if (bundle != null) {
+            fileImagePath = bundle.getString("fileImagePath");
+            fileVideoPath = bundle.getString("fileVideoPath");
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle bundle) {
+        super.onSaveInstanceState(bundle);
+        bundle.putString("fileImagePath", fileImagePath);
+        bundle.putString("fileVideoPath", fileVideoPath);
+    }
+
+
+    public void pickMediaWithPermissions() {
+        MediaPickerPermissionsDispatcher.pickMediaWithPermissionCheck(this);
+    }
+
+    @NeedsPermission(value = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    })
+    public void pickMedia() {
+        File directory = getActivity().getExternalCacheDir();
+        try {
+            String fileName = UUID.randomUUID().toString();
+            File fileImage = File.createTempFile(fileName, ".jpg", directory);
+            File fileVideo = File.createTempFile(fileName, ".mp4", directory);
+            this.fileImagePath = fileImage.getAbsolutePath();
+            this.fileVideoPath = fileVideo.getAbsolutePath();
+
+            String authority = getString(R.string.authority);
+
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(getActivity(), authority, fileImage));
+
+            Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+            takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(getActivity(), authority, fileVideo));
+
+            Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
+
+            Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+            contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
+            contentSelectionIntent.setType("video/*");
+            contentSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
+
+            Intent[] intentArray = new Intent[]{takePictureIntent, takeVideoIntent};
+            chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
+            chooserIntent.putExtra(Intent.EXTRA_TITLE, "Choose");
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+            startActivityForResult(chooserIntent, PICK_CAMERA_REQUEST);
+        } catch (IOException ex) {
+            Log.d(TAG, "create temporal file not created");
+        }
+    }
+
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Intent intentResponse = new Intent(PICKER_RESPONSE_FILTER);
+        File outFile = null;
+        File fileImage = new File(fileImagePath);
+        File fileVideo = new File(fileVideoPath);
+        Boolean success = false;
+        if (resultCode == RESULT_OK && requestCode == PICK_CAMERA_REQUEST) {
+            if (data != null && data.getData() != null) { // from gallery
+                fileImage.delete();
+                fileVideo.delete();
+                outFile = new File(FileUtils.getPath(getActivity(), data.getData()));
+                success = true;
+            } else {
+                if (fileVideo.length() == 0) {
+                    outFile = fileImage.length() > 0 ? fileImage : null;
+                    fileVideo.delete();
+                } else if (fileImage.length() == 0) {
+                    outFile = fileVideo.length() > 0 ? fileVideo : null;
+                    fileImage.delete();
+                }
+
+                if (outFile != null) success = true;
+            }
+        } else {
+            fileImage.delete();
+            fileVideo.delete();
+        }
+        if (success) {
+            intentResponse.putExtra(PICKER_INTENT_FILE, outFile.getAbsolutePath());
+            getActivity().sendBroadcast(intentResponse);
+        }
+    }
+
+
+    @SuppressLint("NeedOnRequestPermissionsResult")
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        MediaPickerPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+}
+
