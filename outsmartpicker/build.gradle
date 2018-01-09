@@ -28,6 +28,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support:support-v13:26.1.0'
+    implementation 'com.android.support:exifinterface:26.1.0'
     implementation ('com.github.hotchemi:permissionsdispatcher:3.1.0') {
         exclude module: "support-v13"
     }

@@ -4,14 +4,18 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 
 import com.outsmart.outsmartpicker.utils.FileUtils;
+import com.outsmart.outsmartpicker.utils.MediaUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,19 +33,36 @@ import static android.app.Activity.RESULT_OK;
 public class MediaPicker extends Fragment {
     public final static String PICKER_RESPONSE_FILTER = "com.outsmart.picker.RESPONSE";
     public final static String PICKER_INTENT_FILE = "file";
+    public final static String PICKER_INTENT_FILE_THUMB = "fileThumbnail";
 
     private static final String TAG = MediaPicker.class.getSimpleName();
     public final int PICK_CAMERA_REQUEST = 5179;
+
+    private HandlerThread workingThread;
+    private Handler workingHandler;
+
     private String fileImagePath;
     private String fileVideoPath;
 
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        workingThread = new HandlerThread("workingThread");
+        workingThread.start();
+        workingHandler = new Handler(workingThread.getLooper());
+
         if (bundle != null) {
             fileImagePath = bundle.getString("fileImagePath");
             fileVideoPath = bundle.getString("fileVideoPath");
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        workingHandler = null;
+        workingThread.quit();
+        workingThread = null;
+        super.onDestroy();
     }
 
     @Override
@@ -96,7 +117,7 @@ public class MediaPicker extends Fragment {
 
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Intent intentResponse = new Intent(PICKER_RESPONSE_FILTER);
+        final Intent intentResponse = new Intent(PICKER_RESPONSE_FILTER);
         File outFile = null;
         File fileImage = new File(fileImagePath);
         File fileVideo = new File(fileVideoPath);
@@ -123,8 +144,17 @@ public class MediaPicker extends Fragment {
             fileVideo.delete();
         }
         if (success) {
-            intentResponse.putExtra(PICKER_INTENT_FILE, outFile.getAbsolutePath());
-            getActivity().sendBroadcast(intentResponse);
+            final File responseFile = outFile;
+            workingHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    String mime = FileUtils.getMimeType(responseFile);
+                    Bitmap thumbnail = MediaUtils.getThumbnail(getActivity(), responseFile, mime);
+                    intentResponse.putExtra(PICKER_INTENT_FILE, responseFile.getAbsolutePath());
+                    intentResponse.putExtra(PICKER_INTENT_FILE_THUMB, thumbnail);
+                    getActivity().sendBroadcast(intentResponse);
+                }
+            });
         }
     }
 

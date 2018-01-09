@@ -7,10 +7,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.outsmart.outsmartpicker.MediaPicker;
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     Button button;
     TextView textView;
     MediaPicker mediaPicker;
+    ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +31,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         button = findViewById(R.id.button);
         textView = findViewById(R.id.textView);
+        imageView = findViewById(R.id.imageView);
         //*/
-
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         mediaPicker = new MediaPicker();
         transaction.add(mediaPicker, "mediaPicker");
@@ -49,7 +52,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             File file = new File(intent.getStringExtra(MediaPicker.PICKER_INTENT_FILE));
+            Bitmap thumb = intent.getParcelableExtra(MediaPicker.PICKER_INTENT_FILE_THUMB);
             textView.setText(file.getAbsolutePath());
+            imageView.setImageBitmap(thumb);
         }
     };
 
