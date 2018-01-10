@@ -6,7 +6,6 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.MediaStore;
@@ -44,6 +43,7 @@ public class MediaPicker extends Fragment {
     private String fileImagePath;
     private String fileVideoPath;
 
+
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
@@ -73,8 +73,8 @@ public class MediaPicker extends Fragment {
     }
 
 
-    public void pickMediaWithPermissions() {
-        MediaPickerPermissionsDispatcher.pickMediaWithPermissionCheck(this);
+    public void pickMediaWithPermissions(MediaType type) {
+        MediaPickerPermissionsDispatcher.pickMediaWithPermissionCheck(this, type);
     }
 
     @NeedsPermission(value = {
@@ -82,7 +82,7 @@ public class MediaPicker extends Fragment {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA,
     })
-    public void pickMedia() {
+    public void pickMedia(MediaType type) {
         File directory = getActivity().getExternalCacheDir();
         try {
             String fileName = UUID.randomUUID().toString();
@@ -103,10 +103,23 @@ public class MediaPicker extends Fragment {
 
             Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
             contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
-            contentSelectionIntent.setType("video/*");
-            contentSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
+            Intent[] intentArray = null;
 
-            Intent[] intentArray = new Intent[]{takePictureIntent, takeVideoIntent};
+            switch (type) {
+                case IMAGE:
+                    contentSelectionIntent.setType("image/*");
+                    intentArray = new Intent[]{takePictureIntent};
+                    break;
+                case VIDEO:
+                    contentSelectionIntent.setType("video/*");
+                    intentArray = new Intent[]{takeVideoIntent};
+                    break;
+                case IMAGE_OR_VIDEO:
+                    contentSelectionIntent.setType("video/*");
+                    contentSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
+                    intentArray = new Intent[]{takePictureIntent, takeVideoIntent};
+                    break;
+            }
             chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
             chooserIntent.putExtra(Intent.EXTRA_TITLE, "Choose");
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);

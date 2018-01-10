@@ -1,7 +1,5 @@
 package com.outsmart.picker;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.outsmart.outsmartpicker.MediaPicker;
+import com.outsmart.outsmartpicker.MediaType;
 
 import java.io.File;
 
@@ -42,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 textView.setText("");
-                mediaPicker.pickMediaWithPermissions();
+                mediaPicker.pickMediaWithPermissions(MediaType.IMAGE_OR_VIDEO);
             }
         });
         registerReceiver(pickerChoose, new IntentFilter(MediaPicker.PICKER_RESPONSE_FILTER));
