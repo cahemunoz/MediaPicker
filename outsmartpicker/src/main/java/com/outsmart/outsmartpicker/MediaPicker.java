@@ -79,7 +79,8 @@ public class MediaPicker extends Fragment {
 
     @NeedsPermission(value = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
     })
     public void pickMedia() {
         File directory = getActivity().getExternalCacheDir();
@@ -90,7 +91,7 @@ public class MediaPicker extends Fragment {
             this.fileImagePath = fileImage.getAbsolutePath();
             this.fileVideoPath = fileVideo.getAbsolutePath();
 
-            String authority = getString(R.string.authority);
+            String authority = getActivity().getPackageName();
 
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(getActivity(), authority, fileImage));
