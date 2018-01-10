@@ -136,13 +136,15 @@ public class MediaPicker extends Fragment {
         File fileImage = new File(fileImagePath);
         File fileVideo = new File(fileVideoPath);
         Boolean success = false;
+
+        String authority = getActivity().getPackageName();
         if (resultCode == RESULT_OK && requestCode == PICK_CAMERA_REQUEST) {
-            if (data != null && data.getData() != null) { // from gallery
+            if (data != null && data.getData() != null && !data.getData().getAuthority().equalsIgnoreCase(authority)) { // from gallery
                 fileImage.delete();
                 fileVideo.delete();
                 outFile = new File(FileUtils.getPath(getActivity(), data.getData()));
                 success = true;
-            } else {
+            } else { //from camera
                 if (fileVideo.length() == 0) {
                     outFile = fileImage.length() > 0 ? fileImage : null;
                     fileVideo.delete();
