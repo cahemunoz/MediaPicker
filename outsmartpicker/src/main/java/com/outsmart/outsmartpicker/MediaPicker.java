@@ -35,6 +35,7 @@ public class MediaPicker extends Fragment {
     public final static String PICKER_INTENT_FILE_THUMB = "fileThumbnail";
 
     private static final String TAG = MediaPicker.class.getSimpleName();
+    public static final String PICKER_INTENT_ERROR = "com.outsmart.picker.ERROR";
     public final int PICK_CAMERA_REQUEST = 5179;
 
     private HandlerThread workingThread;
@@ -142,7 +143,14 @@ public class MediaPicker extends Fragment {
             if (data != null && data.getData() != null && !data.getData().getAuthority().equalsIgnoreCase(authority)) { // from gallery
                 fileImage.delete();
                 fileVideo.delete();
-                outFile = new File(FileUtils.getPath(getActivity(), data.getData()));
+
+                String fileStr = FileUtils.getPath(getActivity(), data.getData());
+                if(fileStr == null) {
+                    intentResponse.putExtra(PICKER_INTENT_ERROR, "file is not in local storage");
+                    getActivity().sendBroadcast(intentResponse);
+                    return;
+                }
+                outFile = new File(fileStr);
                 success = true;
             } else { //from camera
                 if (fileVideo.length() == 0) {
