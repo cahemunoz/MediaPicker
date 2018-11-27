@@ -1,13 +1,13 @@
 package com.outsmart.picker;
 
-import android.app.FragmentTransaction;
+import androidx.fragment.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         imageView = findViewById(R.id.imageView);
         //*/
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         mediaPicker = new MediaPicker();
         transaction.add(mediaPicker, "mediaPicker");
         transaction.commit();
