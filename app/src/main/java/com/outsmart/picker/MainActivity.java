@@ -23,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     Button button;
     TextView textView;
+
+    // Add the MediaPicker Fragment, this is a headless fragment
     MediaPicker mediaPicker;
     ImageView imageView;
 
@@ -33,22 +35,30 @@ public class MainActivity extends AppCompatActivity {
         button = findViewById(R.id.button);
         textView = findViewById(R.id.textView);
         imageView = findViewById(R.id.imageView);
-        //*/
+
+        // Add the MediaPicker in a FragmentTransaction
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         mediaPicker = new MediaPicker();
         transaction.add(mediaPicker, "mediaPicker");
         transaction.commit();
-        //*/
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 textView.setText("");
+
+                // Request a image or video, if you don't have permissions the picker requests them
                 mediaPicker.pickMediaWithPermissions(MediaType.IMAGE_OR_VIDEO);
+
             }
         });
+
+
+        // Add a broadcast receiver with MediaPicker.PICKER_RESPONSE_FILTER Intent Filter
         registerReceiver(pickerChoose, new IntentFilter(MediaPicker.PICKER_RESPONSE_FILTER));
     }
 
+    //Just process the response intent
     BroadcastReceiver pickerChoose = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -66,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        // Don't forget unregister the broadcast
         unregisterReceiver(pickerChoose);
     }
 
