@@ -1,6 +1,6 @@
 # MediaPicker
 
-Pick images and videos in android devices.
+Picks images and videos in android devices.
 
 ## How to setup
 First add the JitPack repository to your root build.gradle at the end of repositories
@@ -21,7 +21,7 @@ dependencies {
 }
 ```
 
-The next step is create a 'res/xml/provider_path.xml' file with this content:
+Next step, create a 'res/xml/provider_path.xml' file with this content:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
@@ -32,7 +32,7 @@ Ensure to replace the path value with  your applicationId value (you can find it
 
 
 
-And last, step add the file provider configuration to your AndroidManifest.xml file
+And last step, add the file provider configuration to your AndroidManifest.xml file
 ```xml
 <provider
     android:name="androidx.core.content.FileProvider"
